@@ -4,7 +4,10 @@ from tkinter import messagebox as mb
 from tkinter.ttk import Notebook
 from PIL import Image, ImageTk, ImageDraw
 import os
+import json
 
+
+CONFIG_FILE = "config.json"
 
 class PyFlowHelper:
 	def __init__(self):
@@ -35,8 +38,15 @@ class PyFlowHelper:
 
 		self.root.bind("<Control-s>", self.save_current_image)
 		self.root.bind("<p>", self.painting_over_top_and_bottom)
+		self.root.bind("<Control-w>", self.close_current_image)
 
 		self.root.protocol("WM_DELETE_WINDOW", self._close)
+
+		if not os.path.exists(CONFIG_FILE):
+			with open(CONFIG_FILE, 'w') as f:
+				json.dump({"opened_images": []}, f)
+		else:
+			self.load_images_from_config()
 
 	def run(self):
 		self.draw_menu()
@@ -52,6 +62,8 @@ class PyFlowHelper:
 		file_menu.add_command(label="Save", command=self.save_current_image)
 		file_menu.add_command(label="Save As", command=self.save_image_as)
 		file_menu.add_command(label="Save All", command=self.save_all_changes)
+		file_menu.add_separator()
+		file_menu.add_command(label="Close image", command=self.close_current_image)
 		file_menu.add_separator()
 		file_menu.add_command(label="Exit", command=self._close)
 		menu_bar.add_cascade(label="File", menu=file_menu)
@@ -77,9 +89,16 @@ class PyFlowHelper:
 		self.button_start_selection = Button(self.root, text="Start selection", command=self.start_area_selection).pack(pady=1, side=LEFT)
 		self.buttin_stop_selection = Button(self.root, text="Stop selection", command=self.stop_area_selection).pack(pady=1, side=RIGHT)
 		
-
-
 		self.image_tabs.pack(fill="both", expand=1)
+
+	def load_images_from_config(self):
+		with open(CONFIG_FILE, "r") as f:
+			config = json.load(f)
+
+		paths = config["opened_images"]
+		for path in paths:
+			self.add_new_image(path)
+
 
 	def open_new_images(self):
 		image_paths = fd.askopenfilenames(filetypes=(("Images", "*.jpeg;*.jpg;*.png"),))
@@ -98,7 +117,7 @@ class PyFlowHelper:
 		image_canvas.create_image(0,0, image=image_tk, anchor="nw")
 		image_canvas.pack(expand="yes")
 
-		self.image_tabs.add(image_tab, text=image_path.split('/')[-1])
+		self.image_tabs.add(image_tab, text=os.path.split(image_path)[1])
 		self.image_tabs.select(image_tab)
 
 		# self.resize_current_image(75)
@@ -122,7 +141,7 @@ class PyFlowHelper:
 			path = path[:-1]
 			self.opened_images[tab_number][0] = path
 			image.save(path)
-			self.image_tabs.add(current_tab, text=path.split('/')[-1])
+			self.image_tabs.add(current_tab, text=os.path.split(path)[1])
 
 
 
@@ -163,8 +182,22 @@ class PyFlowHelper:
 			path = path[:-1]
 			self.opened_images[index][0] = path
 			image.save(path)
-			self.image_tabs.tab(index,text=path.split('/')[-1])
+			self.image_tabs.tab(index,text=os.path.split(path)[1])
 
+	def close_current_image(self, event=None):
+		current_tab, path, image = self.get_current_working_data()
+		if not current_tab:
+			return
+
+		if path[-1]=="*":
+			if not mb.askyesno("Unsaven changes", "Got unsaved changes. Exit anyway?"):
+				return
+
+		index = self.image_tabs.index(current_tab)
+
+		image.close()
+		del self.opened_images[index]
+		self.image_tabs.forget(current_tab)
 
 	def update_image_inside_app(self, current_tab, image):
 		tab_number = self.image_tabs.index(current_tab)
@@ -184,7 +217,7 @@ class PyFlowHelper:
 		if image_path[-1] != "*":
 			image_path += "*"
 			self.opened_images[tab_number][0] = image_path
-			image_name = image_path.split('/')[-1]
+			image_name = os.path.split(image_path)[1]
 			self.image_tabs.tab(current_tab, text=image_name)
 		
 	def resize_current_image(self, percents):
@@ -278,6 +311,11 @@ class PyFlowHelper:
 
 		self.update_image_inside_app(current_tab, image)
 
+	def save_images_to_config(self):
+		paths = [(path[:-1] if path[-1] == "*" else path) for (path, images) in self.opened_images]
+		images = {"opened_images": paths}
+		with open(CONFIG_FILE, 'w') as f:
+			json.dump(images, f, indent=4)
 
 
 	def unsaved_images(self):
@@ -290,6 +328,7 @@ class PyFlowHelper:
 		if self.unsaved_images():
 			if not mb.askyesno("Unsaven changes", "Got unsaved changes. Exit anyway?"):
 				return
+		self.save_images_to_config()
 		self.root.quit()
 
 
