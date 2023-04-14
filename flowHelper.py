@@ -88,7 +88,10 @@ class PyFlowHelper:
 			config = json.load(f)
 
 		paths = config["opened_images"]
+		
 		for path in paths:
+			if not os.path.exists(path):
+				continue
 			self.add_new_image(path)
 
 
