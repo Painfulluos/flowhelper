@@ -15,10 +15,14 @@ class PyFlowHelper:
 
 	def init(self):
 		self.root.title("FlowHelper")
-		self.root.geometry("400x400")
+		pad = 0.87
+		self.root.geometry(f"{int(self.root.winfo_screenwidth()*pad)}x{int(self.root.winfo_screenheight()*pad)}")
+		# self.root.resizable(False,False)
 		# self.root.iconphoto(True,PhotoImage(file="resources/icon.png"))
 
 		self.image_tabs.enable_traversal()
+
+		
 
 		self.root.bind("<Control-s>", self.save_current_image)
 		self.root.bind("<p>", self.painting_over_top_and_bottom)
@@ -41,11 +45,6 @@ class PyFlowHelper:
 		menu_bar.add_cascade(label="File", menu=file_menu)
 
 		edit_menu = Menu(menu_bar, tearoff=0)
-
-		resize_menu = Menu(edit_menu, tearoff=0)
-		resize_menu.add_command(label="75% of original size", command=lambda:self.resize_current_image(75))
-
-		edit_menu.add_cascade(label="Resize", menu=resize_menu)
 
 		edit_menu.add_command(label="Painting over top and bottom", command=self.painting_over_top_and_bottom)
 
@@ -73,13 +72,16 @@ class PyFlowHelper:
 		self.opened_images.append([image_path, image])
 
 		image_tab = Frame(self.image_tabs)
-
+		
 		image_label = Label(image_tab, image=image_tk, anchor="nw")
 		image_label.image = image_tk
 		image_label.pack(side="bottom", fill="both", expand="yes")
 
 		self.image_tabs.add(image_tab, text=image_path.split('/')[-1])
 		self.image_tabs.select(image_tab)
+
+		self.resize_current_image(75)
+
 
 	def get_current_working_data(self):
 		current_tab = self.image_tabs.select()
