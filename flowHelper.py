@@ -27,6 +27,8 @@ class PyFlowHelper:
 		self.root.bind("<Control-s>", self.save_current_image)
 		self.root.bind("<p>", self.painting_over_top_and_bottom)
 
+		self.root.protocol("WM_DELETE_WINDOW", self._close)
+
 	def run(self):
 		self.draw_menu()
 		self.draw_widgets()
@@ -40,6 +42,7 @@ class PyFlowHelper:
 		file_menu.add_command(label="Open", command=self.open_new_images)
 		file_menu.add_command(label="Save", command=self.save_current_image)
 		file_menu.add_command(label="Save As", command=self.save_image_as)
+		file_menu.add_command(label="Save All", command=self.save_all_changes)
 		file_menu.add_separator()
 		file_menu.add_command(label="Exit", command=self._close)
 		menu_bar.add_cascade(label="File", menu=file_menu)
@@ -135,6 +138,16 @@ class PyFlowHelper:
 
 		self.add_new_image(new_path + new_ext)
 
+	def save_all_changes(self):
+		for index, (path, image) in enumerate(self.opened_images):
+			if path[-1] != "*":
+				continue
+			path = path[:-1]
+			self.opened_images[index][0] = path
+			image.save(path)
+			self.image_tabs.tab(index,text=path.split('/')[-1])
+
+
 	def update_image_inside_app(self, current_tab, image):
 		tab_number = self.image_tabs.index(current_tab)
 		tab_frame = self.image_tabs.children[current_tab[current_tab.rfind('!'):]]
@@ -191,7 +204,16 @@ class PyFlowHelper:
 
 		self.update_image_inside_app(current_tab, image)
 
+	def unsaved_images(self):
+		for path, _ in self.opened_images:
+			if path[-1] == "*":
+				return True
+		return False
+
 	def _close(self):
+		if self.unsaved_images():
+			if not mb.askyesno("Unsaven changes", "Got unsaved changes. Exit anyway?"):
+				return
 		self.root.quit()
 
 
