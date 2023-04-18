@@ -54,34 +54,36 @@ class PyFlowHelper:
 		menu_bar = Menu(self.root)
 
 		file_menu = Menu(menu_bar, tearoff=0)
-		file_menu.add_command(label="Open", command=self.open_new_images)
-		file_menu.add_command(label="Save", command=self.save_current_image)
-		file_menu.add_command(label="Save As", command=self.save_image_as)
-		file_menu.add_command(label="Save All", command=self.save_all_changes)
+		file_menu.add_command(label="Открыть", command=self.open_new_images)
+		file_menu.add_command(label="Сохранить", command=self.save_current_image)
+		file_menu.add_command(label="Сохранить как", command=self.save_image_as)
+		file_menu.add_command(label="Сохранить все открытые изображения", command=self.save_all_changes)
 		file_menu.add_separator()
-		file_menu.add_command(label="Close image", command=self.close_current_image)
+		file_menu.add_command(label="Закрыть изображение", command=self.close_current_image)
+		# file_menu.add_separator()
+		# file_menu.add_command(label="Архивировать открытые изображения")
 		file_menu.add_separator()
-		file_menu.add_command(label="Exit", command=self._close)
-		menu_bar.add_cascade(label="File", menu=file_menu)
+		file_menu.add_command(label="Выход", command=self._close)
+		menu_bar.add_cascade(label="Файл", menu=file_menu)
 
 		edit_menu = Menu(menu_bar, tearoff=0)
-		edit_menu.add_command(label="Painting over top and bottom", command=self.painting_over_top_and_bottom)
-		edit_menu.add_command(label="Painting over selection", command=self.fill_selection_area_of_current_image)
+		edit_menu.add_command(label="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
+		edit_menu.add_command(label="Закрасить выделенную область", command=self.fill_selection_area_of_current_image)
 
 		select_menu = Menu(edit_menu, tearoff=0)
-		select_menu.add_command(label="Start selection", command=self.start_area_selection)
-		edit_menu.add_cascade(label="Selection menu", menu=select_menu)
+		select_menu.add_command(label="Начать выделение", command=self.start_area_selection)
+		edit_menu.add_cascade(label="Меню выделения", menu=select_menu)
 
-		menu_bar.add_cascade(label="Edit", menu=edit_menu)
+		menu_bar.add_cascade(label="Редактировать", menu=edit_menu)
 
 		self.root.configure(menu=menu_bar)
 
 	def draw_widgets(self):
 
-		self.button_open_images = Button(self.root, text="Open images", command=self.open_new_images).pack(pady=1, side=TOP)
-		self.button_fill_top_bot = Button(self.root, text="Painting over top and bottom", command=self.painting_over_top_and_bottom).pack(pady=1, side=TOP)
-		self.button_fill_selection = Button(self.root, text="Fill selection", command=self.fill_selection_area_of_current_image).pack(pady=1, side=TOP)
-		self.button_start_selection = Button(self.root, text="Start selection", command=self.start_area_selection).pack(pady=1, side=LEFT)
+		self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images).pack(pady=1, side=TOP)
+		self.button_fill_top_bot = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom).pack(pady=1, side=TOP)
+		self.button_fill_selection = Button(self.root, text="Закрасить выделенную область", command=self.fill_selection_area_of_current_image).pack(pady=1, side=TOP)
+		self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection).pack(pady=1, side=LEFT)
 		
 		self.image_tabs.pack(fill="both", expand=1)
 
@@ -159,7 +161,7 @@ class PyFlowHelper:
 			image.save_as()
 			self.update_image_inside_app(image)
 		except ValueError as e:
-			mb.showerror("Save as error", str(e))
+			mb.showerror("Ошибка Сохранить Как", str(e))
 
 	def save_all_changes(self):
 		for image_info in self.opened_images:
@@ -174,7 +176,7 @@ class PyFlowHelper:
 			return
 
 		if image.unsaved:
-			if not mb.askyesno("Unsaven changes", "Got unsaved changes. Exit anyway?"):
+			if not mb.askyesno("Несохраненные изменения", "Присутствуют несохраненные изменения. Все равно закрыть?"):
 				return
 
 		image.close()
@@ -222,7 +224,7 @@ class PyFlowHelper:
 			image.unsaved = True
 			self.update_image_inside_app(image)
 		except ValueError as e:
-			mb.showerror("Painting error", str(e))
+			mb.showerror("Ошибка закрашивания", str(e))
 
 	def save_images_to_config(self):
 		paths = [info.full_path(no_star=True) for info in self.opened_images]
@@ -239,7 +241,7 @@ class PyFlowHelper:
 
 	def _close(self):
 		if self.unsaved_images():
-			if not mb.askyesno("Unsaven changes", "Got unsaved changes. Exit anyway?"):
+			if not mb.askyesno("Несохраненные изменения", "Присутствуют несохраненные изменения. Все равно закрыть?"):
 				return
 		self.save_images_to_config()
 		self.root.quit()
