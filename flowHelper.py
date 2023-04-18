@@ -31,8 +31,10 @@ class PyFlowHelper:
 		
 
 		self.root.bind("<Control-s>", self.save_current_image)
-		self.root.bind("<p>", self.painting_over_top_and_bottom)
+		self.root.bind("<Control-f>", self.painting_over_top_and_bottom)
 		self.root.bind("<Control-w>", self.close_current_image)
+		self.root.bind("<s>", self.start_area_selection)
+		self.root.bind("<f>", self.fill_selection_area_of_current_image)
 
 		self.root.protocol("WM_DELETE_WINDOW", self._close)
 
@@ -126,7 +128,7 @@ class PyFlowHelper:
 		self.image_tabs.add(image_tab, text=image_info.filename())
 		self.image_tabs.select(image_tab)
 
-		# self.resize_current_image(75)
+		self.resize_current_image(75)
 
 
 	def current_image(self):
@@ -203,14 +205,14 @@ class PyFlowHelper:
 		image.unsaved = True
 		self.update_image_inside_app(image)
 
-	def start_area_selection(self):
+	def start_area_selection(self, event=None):
 		image = self.current_image()
 		if not image:
 			return
 
 		image.start_selection()
 
-	def fill_selection_area_of_current_image(self):
+	def fill_selection_area_of_current_image(self, event=None):
 		image = self.current_image()
 		if not image:
 			return
