@@ -7,6 +7,7 @@ import os
 import json
 
 from image_info import ImageInfo
+import arc_opened_files
 
 
 CONFIG_FILE = "config.json"
@@ -29,10 +30,9 @@ class PyFlowHelper:
 		self.image_tabs.enable_traversal()
 
 		
-
+		self.root.bind("<Control-w>", self.close_current_image)
 		self.root.bind("<Control-s>", self.save_current_image)
 		self.root.bind("<Control-f>", self.painting_over_top_and_bottom)
-		self.root.bind("<Control-w>", self.close_current_image)
 		self.root.bind("<s>", self.start_area_selection)
 		self.root.bind("<f>", self.fill_selection_area_of_current_image)
 
@@ -60,8 +60,8 @@ class PyFlowHelper:
 		file_menu.add_command(label="Сохранить все открытые изображения", command=self.save_all_changes)
 		file_menu.add_separator()
 		file_menu.add_command(label="Закрыть изображение", command=self.close_current_image)
-		# file_menu.add_separator()
-		# file_menu.add_command(label="Архивировать открытые изображения")
+		file_menu.add_separator()
+		file_menu.add_command(label="Архивировать открытые изображения", command=self.arc_open_images)
 		file_menu.add_separator()
 		file_menu.add_command(label="Выход", command=self._close)
 		menu_bar.add_cascade(label="Файл", menu=file_menu)
@@ -92,7 +92,7 @@ class PyFlowHelper:
 			config = json.load(f)
 
 		paths = config["opened_images"]
-		
+
 		for path in paths:
 			if not os.path.exists(path):
 				continue
@@ -110,7 +110,6 @@ class PyFlowHelper:
 			index = opened_images.index(image_path)
 			self.image_tabs.select(index)
 			return
-
 		image = Image.open(image_path)
 		image_tab = Frame(self.image_tabs)
 
@@ -238,6 +237,16 @@ class PyFlowHelper:
 			if info.unsaved:
 				return True
 		return False
+
+	def arc_open_images(self):
+		info_images = [info_images for info_images in self.opened_images]
+		if info_images == []:
+			return
+		try:
+			arc_opened_files.arch(info_images)
+		except:
+			mb.showerror("Ошибка архивирования", "Произошла ошибка во время процесса архивации. Вероятно изображения находятся в разных директориях.")
+
 
 	def _close(self):
 		if self.unsaved_images():
