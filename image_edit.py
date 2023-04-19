@@ -55,6 +55,7 @@ class ImageEdit:
 		draw.rectangle(rect3, fill="black", outline=outline)
 
 	def start_selection(self):
+		self.canvas.delete(self.sel_rect)
 		self.sel_rect = self.canvas.create_rectangle(
 			self.sel_start_x, self.sel_start_y,
 			self.sel_stop_x, self.sel_stop_y,
