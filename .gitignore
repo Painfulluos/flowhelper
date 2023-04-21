@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 password_log.txt
 config.json
+*.txt

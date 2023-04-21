@@ -45,6 +45,7 @@ class PyFlowHelper:
 				json.dump({"opened_images": []}, f)
 		else:
 			self.load_images_from_config()
+			
 
 	def run(self):
 		self.draw_menu()
@@ -71,7 +72,7 @@ class PyFlowHelper:
 
 		edit_menu = Menu(menu_bar, tearoff=0)
 		edit_menu.add_command(label="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
-		edit_menu.add_command(label="Закрасить верх и низ на всех", command=lambda:self.painting_over_top_and_bottom(isall=True))
+		edit_menu.add_command(label="Закрасить верх и низ на всех", command=lambda:self.painting_over_top_and_bottom(isAll=True))
 		edit_menu.add_command(label="Закрасить выделенную область", command=self.fill_selection_area_of_current_image)
 		select_menu = Menu(edit_menu, tearoff=0)
 		select_menu.add_command(label="Начать выделение", command=self.start_area_selection)
@@ -83,17 +84,6 @@ class PyFlowHelper:
 
 	def draw_widgets(self):
 
-		# self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images)
-		# self.button_open_images.pack(pady=1, side=TOP)
-		# self.button_fill_top_bot = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
-		# self.button_fill_top_bot.pack(pady=1, side=TOP)
-		# self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection)
-		# self.button_start_selection.pack(pady=1, side=LEFT, anchor="n")
-		# self.button_fill_selection = Button(self.root, text="Закрасить область", command=self.fill_selection_area_of_current_image)
-		# self.button_fill_selection.pack(pady=1, side=LEFT, anchor="ne")
-
-		# self.image_tabs.pack(fill="both", expand=1)
-
 		self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images)
 		self.button_open_images.grid(row=0, column=0)
 		self.button_close_all_images = Button(self.root, text="Закрыть все изображения", command=self.close_all_images)
@@ -101,7 +91,7 @@ class PyFlowHelper:
 
 		self.button_fill_top_bot_curr_image = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
 		self.button_fill_top_bot_curr_image.grid(row=0, column=3,  pady=2, padx=2)
-		self.button_fill_top_bot_all_images = Button(self.root, text="Закрасить верх и низ на всех ", command=lambda:self.painting_over_top_and_bottom(isall=True))
+		self.button_fill_top_bot_all_images = Button(self.root, text="Закрасить верх и низ на всех ", command=lambda:self.painting_over_top_and_bottom(isAll=True))
 		self.button_fill_top_bot_all_images.grid(row=0, column=4,  pady=2, padx=2)
 
 		self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection)
@@ -193,12 +183,12 @@ class PyFlowHelper:
 			image_info.save()
 			self.image_tabs.tab(image_info.tab, text=image_info.filename())
 
-	def close_current_image(self, event=None):
+	def close_current_image(self, event=None, isAll=False):
 		image = self.current_image()
 		if not image:
 			return
 
-		if image.unsaved:
+		if image.unsaved and isAll==False:
 			if not mb.askyesno("Несохраненные изменения", "Присутствуют несохраненные изменения. Все равно закрыть?"):
 				return
 
@@ -207,8 +197,10 @@ class PyFlowHelper:
 		self.opened_images.remove(image)
 
 	def close_all_images(self, event=None):
+		if not mb.askyesno("Закрытие изображений", "Все изображения будут закрыты. Вы уверены?"):
+			return
 		while len(self.opened_images) > 0:
-			self.close_current_image()
+			self.close_current_image(isAll=True)
 
 
 	def update_image_inside_app(self, image_info):
@@ -226,8 +218,8 @@ class PyFlowHelper:
 		self.update_image_inside_app(image)
 
 
-	def painting_over_top_and_bottom(self, event=None, isall=False):
-		if isall == False:
+	def painting_over_top_and_bottom(self, event=None, isAll=False):
+		if isAll == False:
 			image = self.current_image()
 			if not image:
 				return
@@ -235,7 +227,7 @@ class PyFlowHelper:
 			image.paint_top_bot()
 			image.unsaved = True
 			self.update_image_inside_app(image)
-		elif isall == True:
+		elif isAll == True:
 			for image in self.opened_images:
 				image.paint_top_bot()
 				image.unsaved = True
@@ -291,7 +283,6 @@ class PyFlowHelper:
 				return
 		self.save_images_to_config()
 		self.root.quit()
-
 
 if __name__ == "__main__":
 	PyFlowHelper().run()
