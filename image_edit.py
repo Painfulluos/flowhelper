@@ -20,7 +20,7 @@ class ImageEdit:
 
 	def update_image_on_canvas(self):
 		if self.canvas is None:
-			raise RuntimeError("Canvas of image not given")
+			raise RuntimeError("Канвас изображения не существует")
 	
 		image_tk = self.image_tk
 
@@ -75,7 +75,7 @@ class ImageEdit:
 
 	def	fill_selected_area(self):
 		if self.sel_rect is None:
-			raise ValueError("Got no selection area for painting operation")
+			raise ValueError("Область закрашивания не выделена.")
 
 		self.canvas.unbind("<Button-1>")
 		self.canvas.unbind("<B1-Motion>")

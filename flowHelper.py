@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import messagebox as mb
 from tkinter.ttk import Notebook
-from PIL import Image, ImageTk, ImageDraw
+from PIL import Image
 import os
 import json
 
@@ -31,7 +31,9 @@ class PyFlowHelper:
 
 		
 		self.root.bind("<Control-w>", self.close_current_image)
+		self.root.bind("<Control-Shift-W>", self.close_all_images)
 		self.root.bind("<Control-s>", self.save_current_image)
+		self.root.bind("<Control-Shift-S>", self.save_all_images)
 		self.root.bind("<Control-f>", self.painting_over_top_and_bottom)
 		self.root.bind("<s>", self.start_area_selection)
 		self.root.bind("<f>", self.fill_selection_area_of_current_image)
@@ -57,9 +59,10 @@ class PyFlowHelper:
 		file_menu.add_command(label="Открыть", command=self.open_new_images)
 		file_menu.add_command(label="Сохранить", command=self.save_current_image)
 		file_menu.add_command(label="Сохранить как", command=self.save_image_as)
-		file_menu.add_command(label="Сохранить все открытые изображения", command=self.save_all_changes)
+		file_menu.add_command(label="Сохранить все открытые изображения", command=self.save_all_images)
 		file_menu.add_separator()
 		file_menu.add_command(label="Закрыть изображение", command=self.close_current_image)
+		file_menu.add_command(label="Закрыть все открытые изображения", command=self.close_all_images)
 		file_menu.add_separator()
 		file_menu.add_command(label="Архивировать открытые изображения", command=self.arc_open_images)
 		file_menu.add_separator()
@@ -68,8 +71,8 @@ class PyFlowHelper:
 
 		edit_menu = Menu(menu_bar, tearoff=0)
 		edit_menu.add_command(label="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
+		edit_menu.add_command(label="Закрасить верх и низ на всех", command=lambda:self.painting_over_top_and_bottom(isall=True))
 		edit_menu.add_command(label="Закрасить выделенную область", command=self.fill_selection_area_of_current_image)
-
 		select_menu = Menu(edit_menu, tearoff=0)
 		select_menu.add_command(label="Начать выделение", command=self.start_area_selection)
 		edit_menu.add_cascade(label="Меню выделения", menu=select_menu)
@@ -80,12 +83,33 @@ class PyFlowHelper:
 
 	def draw_widgets(self):
 
-		self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images).pack(pady=1, side=TOP)
-		self.button_fill_top_bot = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom).pack(pady=1, side=TOP)
-		self.button_fill_selection = Button(self.root, text="Закрасить выделенную область", command=self.fill_selection_area_of_current_image).pack(pady=1, side=TOP)
-		self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection).pack(pady=1, side=LEFT)
-		
-		self.image_tabs.pack(fill="both", expand=1)
+		# self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images)
+		# self.button_open_images.pack(pady=1, side=TOP)
+		# self.button_fill_top_bot = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
+		# self.button_fill_top_bot.pack(pady=1, side=TOP)
+		# self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection)
+		# self.button_start_selection.pack(pady=1, side=LEFT, anchor="n")
+		# self.button_fill_selection = Button(self.root, text="Закрасить область", command=self.fill_selection_area_of_current_image)
+		# self.button_fill_selection.pack(pady=1, side=LEFT, anchor="ne")
+
+		# self.image_tabs.pack(fill="both", expand=1)
+
+		self.button_open_images = Button(self.root, text="Открыть изображения", command=self.open_new_images)
+		self.button_open_images.grid(row=0, column=0)
+		self.button_close_all_images = Button(self.root, text="Закрыть все изображения", command=self.close_all_images)
+		self.button_close_all_images.grid(row=1, column=0)
+
+		self.button_fill_top_bot_curr_image = Button(self.root, text="Закрасить верх и низ", command=self.painting_over_top_and_bottom)
+		self.button_fill_top_bot_curr_image.grid(row=0, column=3,  pady=2, padx=2)
+		self.button_fill_top_bot_all_images = Button(self.root, text="Закрасить верх и низ на всех ", command=lambda:self.painting_over_top_and_bottom(isall=True))
+		self.button_fill_top_bot_all_images.grid(row=0, column=4,  pady=2, padx=2)
+
+		self.button_start_selection = Button(self.root, text="Начать выделение", command=self.start_area_selection)
+		self.button_start_selection.grid(row=1, column=3, pady=2, padx=2)
+		self.button_fill_selection = Button(self.root, text="Закрасить область", command=self.fill_selection_area_of_current_image)
+		self.button_fill_selection.grid(row=1, column=4, pady=2, padx=2)
+
+		self.image_tabs.grid(row=2, column=0, columnspan=9, ipady=1, ipadx=6, pady=1, padx=1)
 
 	def load_images_from_config(self):
 		with open(CONFIG_FILE, "r") as f:
@@ -100,7 +124,7 @@ class PyFlowHelper:
 
 
 	def open_new_images(self):
-		image_paths = fd.askopenfilenames(filetypes=(("Images", "*.jpeg;*.jpg;*.png"),))
+		image_paths = fd.askopenfilenames(filetypes=(("Изображения", "*.jpeg;*.jpg;*.png"),))
 		for image_path in image_paths:
 			self.add_new_image(image_path)
 
@@ -162,7 +186,7 @@ class PyFlowHelper:
 		except ValueError as e:
 			mb.showerror("Ошибка Сохранить Как", str(e))
 
-	def save_all_changes(self):
+	def save_all_images(self, event=None):
 		for image_info in self.opened_images:
 			if not image_info.unsaved:
 				continue
@@ -182,6 +206,11 @@ class PyFlowHelper:
 		self.image_tabs.forget(image.tab)
 		self.opened_images.remove(image)
 
+	def close_all_images(self, event=None):
+		while len(self.opened_images) > 0:
+			self.close_current_image()
+
+
 	def update_image_inside_app(self, image_info):
 		image_info.update_image_on_canvas()
 
@@ -197,14 +226,21 @@ class PyFlowHelper:
 		self.update_image_inside_app(image)
 
 
-	def painting_over_top_and_bottom(self, event=None):
-		image = self.current_image()
-		if not image:
-			return
+	def painting_over_top_and_bottom(self, event=None, isall=False):
+		if isall == False:
+			image = self.current_image()
+			if not image:
+				return
 
-		image.paint_top_bot()
-		image.unsaved = True
-		self.update_image_inside_app(image)
+			image.paint_top_bot()
+			image.unsaved = True
+			self.update_image_inside_app(image)
+		elif isall == True:
+			for image in self.opened_images:
+				image.paint_top_bot()
+				image.unsaved = True
+				self.update_image_inside_app(image)
+
 
 	def start_area_selection(self, event=None):
 		image = self.current_image()
@@ -244,6 +280,7 @@ class PyFlowHelper:
 			return
 		try:
 			arc_opened_files.arch(info_images)
+			mb.showinfo("Архивирование", "Архивирование завершено.")
 		except:
 			mb.showerror("Ошибка архивирования", "Произошла ошибка во время процесса архивации. Вероятно изображения находятся в разных директориях.")
 

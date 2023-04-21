@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+password_log.txt
+config.json
